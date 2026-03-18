@@ -58,3 +58,15 @@ export async function sendChatMessage({ question, namespace, history }) {
 export async function deleteChat(namespace) {
   return apiFetch(`/api/delete-chat/${encodeURIComponent(namespace)}`, { method: "DELETE" })
 }
+<<<<<<< HEAD
+=======
+
+// ════════════════════════════════════════════════════════
+// DELETE PAPER — removes vectors from Pinecone + SQLite
+// ════════════════════════════════════════════════════════
+export async function deletePaper(namespace) {
+  return apiFetch(`/api/delete-paper/${encodeURIComponent(namespace)}`, {
+    method: 'DELETE',
+  })
+}
+>>>>>>> master
