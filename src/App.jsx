@@ -5,11 +5,7 @@ import Sidebar from './components/Sidebar'
 import UploadView from './components/UploadView'
 import ChatView from './components/ChatView'
 import Toast from './components/Toast'
-<<<<<<< HEAD
-import { fetchNamespaces } from './api'
-=======
 import { fetchNamespaces, deletePaper } from './api'
->>>>>>> master
 
 export default function App() {
   const [activeTab,   setActiveTab]   = useState('upload')
@@ -17,10 +13,7 @@ export default function App() {
   const [activePaper, setActivePaper] = useState('')
   const [toasts,      setToasts]      = useState([])
   const [backendOk,   setBackendOk]   = useState(null)
-<<<<<<< HEAD
-=======
   const [drawerOpen,  setDrawerOpen]  = useState(false)
->>>>>>> master
 
   useEffect(() => {
     fetchNamespaces()
@@ -30,14 +23,7 @@ export default function App() {
         const saved = localStorage.getItem('activePaper')
         if (saved && ns.includes(saved)) setActivePaper(saved)
       })
-<<<<<<< HEAD
-      .catch(() => {
-        setBackendOk(false)
-        // Don't show error toast — header indicator is enough
-      })
-=======
       .catch(() => setBackendOk(false))
->>>>>>> master
   }, [])
 
   const showToast = useCallback((message, type = 'info') => {
@@ -57,19 +43,6 @@ export default function App() {
   const handleSelectPaper = useCallback((ns) => {
     setActivePaper(ns)
     localStorage.setItem('activePaper', ns)
-<<<<<<< HEAD
-  }, [])
-
-  return (
-    <div className="app-shell">
-      <Header activeTab={activeTab} onTabChange={setActiveTab} backendOk={backendOk} />
-      <div className="app-body">
-        <Sidebar
-          papers={papers}
-          activePaper={activePaper}
-          onSelectPaper={p => { handleSelectPaper(p); setActiveTab('chat') }}
-        />
-=======
     setDrawerOpen(false)
     setActiveTab('chat')
   }, [])
@@ -116,7 +89,6 @@ export default function App() {
           onClick={() => setDrawerOpen(false)}
         />
 
->>>>>>> master
         <main className="main-panel">
           {activeTab === 'upload'
             ? <UploadView onPaperIndexed={handlePaperIndexed} onToast={showToast} />
@@ -124,8 +96,6 @@ export default function App() {
           }
         </main>
       </div>
-<<<<<<< HEAD
-=======
 
       <nav className="bottom-nav">
         <div className="bottom-nav-inner">
@@ -144,7 +114,6 @@ export default function App() {
         </div>
       </nav>
 
->>>>>>> master
       <Toast toasts={toasts} onRemove={removeToast} />
     </div>
   )
