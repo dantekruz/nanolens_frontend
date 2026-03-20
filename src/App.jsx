@@ -5,7 +5,7 @@ import Sidebar from './components/Sidebar'
 import UploadView from './components/UploadView'
 import ChatView from './components/ChatView'
 import Toast from './components/Toast'
-import { fetchNamespaces } from './api'
+import { fetchNamespaces, deletePaper } from './api'
 
 export default function App() {
   const [activeTab,   setActiveTab]   = useState('upload')
@@ -13,6 +13,7 @@ export default function App() {
   const [activePaper, setActivePaper] = useState('')
   const [toasts,      setToasts]      = useState([])
   const [backendOk,   setBackendOk]   = useState(null)
+  const [drawerOpen,  setDrawerOpen]  = useState(false)
 
   useEffect(() => {
     fetchNamespaces()
@@ -22,10 +23,7 @@ export default function App() {
         const saved = localStorage.getItem('activePaper')
         if (saved && ns.includes(saved)) setActivePaper(saved)
       })
-      .catch(() => {
-        setBackendOk(false)
-        // Don't show error toast — header indicator is enough
-      })
+      .catch(() => setBackendOk(false))
   }, [])
 
   const showToast = useCallback((message, type = 'info') => {
@@ -45,17 +43,52 @@ export default function App() {
   const handleSelectPaper = useCallback((ns) => {
     setActivePaper(ns)
     localStorage.setItem('activePaper', ns)
+    setDrawerOpen(false)
+    setActiveTab('chat')
   }, [])
+
+  const handleDeletePaper = useCallback(async (ns) => {
+    try {
+      await deletePaper(ns)
+      setPapers(prev => prev.filter(p => p !== ns))
+      if (activePaper === ns) {
+        setActivePaper('')
+        localStorage.removeItem('activePaper')
+      }
+      showToast(`"${ns}" deleted successfully`, 'success')
+    } catch (err) {
+      showToast('Delete failed: ' + err.message, 'error')
+    }
+  }, [activePaper, showToast])
+
+  const sidebarProps = {
+    papers,
+    activePaper,
+    onSelectPaper: handleSelectPaper,
+    onDeletePaper: handleDeletePaper,
+  }
 
   return (
     <div className="app-shell">
-      <Header activeTab={activeTab} onTabChange={setActiveTab} backendOk={backendOk} />
+      <Header
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        backendOk={backendOk}
+        onMenuClick={() => setDrawerOpen(o => !o)}
+      />
+
       <div className="app-body">
-        <Sidebar
-          papers={papers}
-          activePaper={activePaper}
-          onSelectPaper={p => { handleSelectPaper(p); setActiveTab('chat') }}
+        <Sidebar {...sidebarProps} />
+
+        <div className={`mobile-drawer ${drawerOpen ? 'open' : ''}`}>
+          <Sidebar {...sidebarProps} mobile />
+        </div>
+
+        <div
+          className={`sidebar-overlay ${drawerOpen ? 'visible' : ''}`}
+          onClick={() => setDrawerOpen(false)}
         />
+
         <main className="main-panel">
           {activeTab === 'upload'
             ? <UploadView onPaperIndexed={handlePaperIndexed} onToast={showToast} />
@@ -63,6 +96,24 @@ export default function App() {
           }
         </main>
       </div>
+
+      <nav className="bottom-nav">
+        <div className="bottom-nav-inner">
+          <button className={`bottom-nav-btn ${activeTab === 'upload' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('upload'); setDrawerOpen(false) }}>
+            <span className="nav-icon">📤</span><span>Upload</span>
+          </button>
+          <button className={`bottom-nav-btn ${drawerOpen ? 'active' : ''}`}
+            onClick={() => setDrawerOpen(o => !o)}>
+            <span className="nav-icon">📄</span><span>Papers</span>
+          </button>
+          <button className={`bottom-nav-btn ${activeTab === 'chat' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('chat'); setDrawerOpen(false) }}>
+            <span className="nav-icon">💬</span><span>Chat</span>
+          </button>
+        </div>
+      </nav>
+
       <Toast toasts={toasts} onRemove={removeToast} />
     </div>
   )
